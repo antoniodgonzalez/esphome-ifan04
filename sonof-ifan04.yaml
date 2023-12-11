@@ -1,6 +1,6 @@
 substitutions:
-  device_name: ifan04-test
-  device_displayname: IFAN04 Test
+  device_name: sonoff-ifan04
+  device_displayname: SONOFF IFAN04
 
 esphome:
   name: $device_name
