@@ -10,8 +10,6 @@ esphome:
 
 esp8266:
   board: esp8285
-  framework:
-    version: latest
   early_pin_init: true
   restore_from_flash: true
 
@@ -26,16 +24,12 @@ logger:
 #  level: VERBOSE
 
 api:
-  encryption:
-    key: !secret api_key
 
 ota:
-  password: !secret ota_pwd
 
 wifi:
   ssid: !secret wifi_ssid
-  password: !secret wifi_pwd
-  fast_connect: yes
+  password: !secret wifi_password
 
   ap:
     ssid: $device_name Fallback Hotspot
@@ -44,7 +38,6 @@ wifi:
 captive_portal:
 
 web_server:
-  port: 80
 
 # GPIO00 ... Button
 # GPIO01 ... UART0 TX
@@ -62,11 +55,6 @@ status_led:
   pin:
     number: GPIO13
     inverted: true
-
-i2c:
-  sda: GPIO04
-  scl: GPIO05
-  frequency: 200kHz
 
 # UART configuration for the RF remote control
 # Logging via uart must be disabled to use this.
@@ -193,7 +181,13 @@ switch:
     entity_category: config
     optimistic: True
     restore_mode: RESTORE_DEFAULT_OFF
-    
+  - platform: template
+    name: 'Detached mode'
+    id: detached_mode
+    entity_category: config
+    optimistic: True
+    restore_mode: RESTORE_DEFAULT_OFF
+
 sensor:
   - platform: wifi_signal
     name: 'WiFi signal'
@@ -207,6 +201,33 @@ binary_sensor:
     pin:
       number: GPIO00
       inverted: true
+    on_press:
+      - light.toggle: light_comp
+  - platform: gpio
+    name: "External Button 1"
+    pin:
+      number: GPIO04
+      inverted: true    
+      mode:
+        input: true
+        pullup: true
+    on_state:
+      if:
+        condition:
+          or:
+            - lambda: return !id(detached_mode).state;
+            - not:
+                api.connected:
+        then:
+          - light.toggle: light_comp
+  - platform: gpio
+    name: "External button 2"
+    pin:
+      number: GPIO05
+      inverted: true    
+      mode:
+        input: true
+        pullup: true
 
 text_sensor:
   - platform: version
